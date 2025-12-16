@@ -1,0 +1,35 @@
+name: classicspin
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.4.0
+  intl: ^0.20.2
+  connectivity_plus: ^6.1.4
+  shared_preferences: ^2.2.2
+  path_provider: ^2.1.1
+  share_plus: ^11.0.0
+  permission_handler: ^12.0.1
+  pull_to_refresh: ^2.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter:
+  uses-material-design: true
+  assets: 
+    - assets/images/
+    
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/spinlogo.png"

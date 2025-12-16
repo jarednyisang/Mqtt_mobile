@@ -327,7 +327,7 @@ class _SignupPageState extends State<SignupPage> {
             ),
             const SizedBox(width: 8),
             Text(
-              "Join Survey Hub Today",
+              "Join Chloride MQTT Today",
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,

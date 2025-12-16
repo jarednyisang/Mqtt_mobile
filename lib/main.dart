@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Merry Go',
+      title: 'Chloride MQTT',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         primaryColor: Color(0xFF1565C0),

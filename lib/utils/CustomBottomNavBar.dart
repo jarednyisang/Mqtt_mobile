@@ -160,7 +160,7 @@ class CustomBottomNavBar extends StatelessWidget {
               icon: Icons.settings_outlined,
               activeIcon: Icons.settings,
               label: "Settings",
-              isActive: currentIndex == 5,
+              isActive: currentIndex == 4,
               theme: theme,
             ),
           ],

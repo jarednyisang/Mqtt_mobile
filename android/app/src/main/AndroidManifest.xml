@@ -2,7 +2,7 @@
  <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:label="Survey Hub"
+        android:label="Chloride MQTT"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

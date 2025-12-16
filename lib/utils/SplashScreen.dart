@@ -95,7 +95,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
               SizedBox(height: 32),
               Text(
-                'Survey Hub',
+                'Chloride MQTT',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 36,

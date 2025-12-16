@@ -1,7 +1,7 @@
-name: classicspin
+name: surveyhub
 description: "A new Flutter project."
 publish_to: 'none'
-version: 0.1.0
+version: 1.0.0+9
 
 environment:
   sdk: ^3.8.0
@@ -17,6 +17,9 @@ dependencies:
   share_plus: ^11.0.0
   permission_handler: ^12.0.1
   pull_to_refresh: ^2.0.0
+  purchases_flutter: ^9.1.0
+  webview_flutter: ^4.4.0
+
 
 dev_dependencies:
   flutter_test:
@@ -28,8 +31,8 @@ flutter:
   uses-material-design: true
   assets: 
     - assets/images/
-    
+
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/images/spinlogo.png"
+  image_path: "assets/images/chloride.png"

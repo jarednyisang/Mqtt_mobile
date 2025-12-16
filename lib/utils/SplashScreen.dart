@@ -1,5 +1,5 @@
-import 'package:classicspin/dashboard/MainScreen.dart';
 import 'package:flutter/material.dart';
+import 'package:surveyhub/dashboard/MainScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -21,7 +21,8 @@ class _SplashScreenState extends State<SplashScreen> {
     
     // Check if user data exists
     int? pid = prefs.getInt('user_pid');
-    String? phonenumber = prefs.getString('user_phone');
+    String? code
+ = prefs.getString('code');
     String? fullname = prefs.getString('user_fullname');
     String? emailaddress = prefs.getString('user_email');
     String? password = prefs.getString('user_password');
@@ -36,7 +37,9 @@ class _SplashScreenState extends State<SplashScreen> {
       MaterialPageRoute(
         builder: (context) => MainScreen(
           userpid: pid ?? 0,
-          phonenumber: phonenumber ?? '',
+          code
+: code
+ ?? '',
           userpassword: password ?? '',
           fullname: fullname ?? '',
           emailaddress: emailaddress ?? '',
@@ -82,7 +85,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   backgroundColor: Colors.white,
                   child: ClipOval(
                     child: Image.asset(
-                      'assets/images/spinlogo.png',
+                      'assets/images/chloride.png',
                       fit: BoxFit.cover,
                       width: 140, // Match the radius to make it a full circle
                       height: 140,
@@ -92,7 +95,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
               SizedBox(height: 32),
               Text(
-                'Queue Cash',
+                'Survey Hub',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 36,

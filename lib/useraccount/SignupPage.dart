@@ -1,27 +1,28 @@
 import 'dart:async';
 import 'dart:io';
-
-import 'package:classicspin/useraccount/SplashScreen.dart';
-import 'package:classicspin/utils/BaseUrl.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:surveyhub/utils/AppColors.dart';
+import 'package:surveyhub/utils/BaseUrl.dart';
+import 'package:surveyhub/utils/SplashScreen.dart';
+
 
 // Add the CountriesModel class
 class CountriesModel {
   final int id;
-  final String country;
+  final String countryName;
 
   CountriesModel({
     required this.id,
-    required this.country,
+    required this.countryName,
   });
 
   factory CountriesModel.fromJson(Map<String, dynamic> json) {
     return CountriesModel(
       id: json['id'],
-      country: json['country'],
+      countryName: json['country_name'] ?? json['country'], // Handle both field names
     );
   }
 }
@@ -35,10 +36,11 @@ class SignupPage extends StatefulWidget {
 
 class _SignupPageState extends State<SignupPage> {
   final _formKey = GlobalKey<FormState>();
-  String fullname = '', phonenumber='', email = '', password = '', repeatPassword = '';
+  String name = '', refcode = '', email = '', password = '', passwordConfirmation = '';
   bool _loading = false;
   bool _obscurePassword = true;
-  bool _obscureRepeatPassword = true;
+  bool _obscurePasswordConfirmation = true;
+  bool _agreeTerms = false;
 
   // Country dropdown variables
   List<CountriesModel> _countries = [];
@@ -70,7 +72,7 @@ class _SignupPageState extends State<SignupPage> {
         _filteredCountries = List.from(_countries);
       } else {
         _filteredCountries = _countries.where((country) =>
-          country.country.toLowerCase().contains(query.toLowerCase())
+          country.countryName.toLowerCase().contains(query.toLowerCase())
         ).toList();
       }
     });
@@ -80,156 +82,158 @@ class _SignupPageState extends State<SignupPage> {
   void _selectCountry(CountriesModel country) {
     setState(() {
       _selectedCountryId = country.id;
-      _countrySearchController.text = country.country;
+      _countrySearchController.text = country.countryName;
       _showCountryDropdown = false;
     });
   }
 
   // Fetch countries from API
-Future<void> _fetchCountries() async {
-  setState(() {
-    _isLoadingCountries = true;
-    _countryErrorMessage = '';
-  });
-
-  // Check connectivity
-  var connectivityResult = await Connectivity().checkConnectivity();
-  if (connectivityResult == ConnectivityResult.none) {
+  Future<void> _fetchCountries() async {
     setState(() {
-      _countryErrorMessage = "No network connection. Please check your internet connection.";
-      _isLoadingCountries = false;
+      _isLoadingCountries = true;
+      _countryErrorMessage = '';
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(_countryErrorMessage),
-        backgroundColor: Colors.red,
-      ),
-    );
-    return;
-  }
 
-  try {
-    final response = await http.get(
-      Uri.parse(BaseUrl.GETCOUNTRIES),
-    ).timeout(
-      const Duration(seconds: 30),
-      onTimeout: () {
-        throw TimeoutException('Request timeout. Please try again.');
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final dynamic responseData = json.decode(response.body);
-      List<dynamic> jsonData;
-
-      if (responseData is List) {
-        jsonData = responseData;
-      } else if (responseData is Map<String, dynamic>) {
-        if (responseData.containsKey('data')) {
-          jsonData = responseData['data'];
-        } else if (responseData.containsKey('countries')) {
-          jsonData = responseData['countries'];
-        } else if (responseData.containsKey('result')) {
-          jsonData = responseData['result'];
-        } else {
-          throw FormatException('Unexpected response format: ${responseData.keys}');
-        }
-      } else {
-        throw FormatException('Unexpected response type: ${responseData.runtimeType}');
-      }
-
+    // Check connectivity
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
       setState(() {
-        _countries = jsonData.map((json) => CountriesModel.fromJson(json)).toList();
-        _filteredCountries = List.from(_countries);
+        _countryErrorMessage = "No network connection. Please check your internet connection.";
         _isLoadingCountries = false;
       });
-    } else {
-      throw Exception('Failed to load countries. Status: ${response.statusCode}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_countryErrorMessage),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
     }
-  } on SocketException {
-    _showErrorSnackBar('Network connection failed. Please check your internet connection.');
-  } on TimeoutException {
-    _showErrorSnackBar('Request timeout. Please try again.');
-  } on FormatException catch (e) {
-    _showErrorSnackBar('Invalid data format. $e');
-  } on Exception catch (e) {
-    _showErrorSnackBar('Error loading countries: $e');
-  } finally {
-    setState(() {
-      _isLoadingCountries = false;
-    });
-  }
-}
-Future<void> _signup() async {
-  setState(() => _loading = true);
 
-  // Check connectivity
-  var connectivityResult = await Connectivity().checkConnectivity();
-  if (connectivityResult == ConnectivityResult.none) {
-    setState(() => _loading = false);
-    _showErrorSnackBar('No network connection. Please check your internet connection.');
-    return;
-  }
+    try {
+      final response = await http.get(
+        Uri.parse(BaseUrl.GETCOUNTRIES),
+      ).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw TimeoutException('Request timeout. Please try again.');
+        },
+      );
 
-  try {
-    final url = Uri.parse(BaseUrl.SIGNUP);
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        "FULLNAME": fullname,
-         "PHONE": phonenumber,
-        "EMAIL": email,
-        "PASSWORD": password,
-        "REPEATPASSWORD": repeatPassword,
-        "COUNTRY_ID": _selectedCountryId,
-      }),
-    ).timeout(
-      const Duration(seconds: 30),
-      onTimeout: () {
-        throw TimeoutException('Request timeout. Please try again.');
-      },
-    );
+      if (response.statusCode == 200) {
+        final dynamic responseData = json.decode(response.body);
+        List<dynamic> jsonData;
 
-    final data = jsonDecode(response.body);
+        if (responseData is List) {
+          jsonData = responseData;
+        } else if (responseData is Map<String, dynamic>) {
+          if (responseData.containsKey('data')) {
+            jsonData = responseData['data'];
+          } else if (responseData.containsKey('countries')) {
+            jsonData = responseData['countries'];
+          } else if (responseData.containsKey('result')) {
+            jsonData = responseData['result'];
+          } else {
+            throw FormatException('Unexpected response format: ${responseData.keys}');
+          }
+        } else {
+          throw FormatException('Unexpected response type: ${responseData.runtimeType}');
+        }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(data['message'] ?? "Signup response received"),
-        backgroundColor: data['error'] == false ? Colors.green : Colors.redAccent,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
-
-    if (response.statusCode == 200 && data['error'] == false) {
-      Future.delayed(const Duration(seconds: 1), () {
-        Navigator.pop(context);
+        setState(() {
+          _countries = jsonData.map((json) => CountriesModel.fromJson(json)).toList();
+          _filteredCountries = List.from(_countries);
+          _isLoadingCountries = false;
+        });
+      } else {
+        throw Exception('Failed to load countries. Status: ${response.statusCode}');
+      }
+    } on SocketException {
+      _showErrorSnackBar('Network connection failed. Please check your internet connection.');
+    } on TimeoutException {
+      _showErrorSnackBar('Request timeout. Please try again.');
+    } on FormatException {
+      _showErrorSnackBar('Invalid data format. Server error');
+    } on Exception {
+      _showErrorSnackBar('Error loading countries. Server error');
+    } finally {
+      setState(() {
+        _isLoadingCountries = false;
       });
     }
-     if (response.statusCode == 201 && data['error'] == false) {
-     if (mounted) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const SplashScreen(),
-      ),
-    );
   }
+
+  Future<void> _signup() async {
+    setState(() => _loading = true);
+
+    // Check connectivity
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      setState(() => _loading = false);
+      _showErrorSnackBar('No network connection. Please check your internet connection.');
+      return;
     }
-  } on SocketException {
-    _showErrorSnackBar('Network connection failed. Please check your internet connection.');
-  } on TimeoutException {
-    _showErrorSnackBar('Request timeout. Please try again.');
-  } on FormatException catch (e) {
-    _showErrorSnackBar('Invalid response format: $e');
-  } on Exception catch (e) {
-    _showErrorSnackBar('Signup failed: $e');
-  } finally {
-    setState(() => _loading = false);
+
+    try {
+      final url = Uri.parse(BaseUrl.SIGNUP);
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "name": name,
+          "refcode": refcode.isEmpty ? null : refcode, // Send null if empty (optional field)
+          "email": email,
+          "country": _selectedCountryId,
+          "password": password,
+          "password_confirmation": passwordConfirmation,
+          "agreeTerms": _agreeTerms,
+        }),
+      ).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw TimeoutException('Request timeout. Please try again.');
+        },
+      );
+
+      final data = jsonDecode(response.body);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(data['message'] ?? "Signup response received"),
+          backgroundColor: data['error'] == false ? Colors.green : Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      );
+
+      if (response.statusCode == 200 && data['error'] == false) {
+        Future.delayed(const Duration(seconds: 1), () {
+          Navigator.pop(context);
+        });
+      }
+      if (response.statusCode == 201 && data['error'] == false) {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const SplashScreen(),
+            ),
+          );
+        }
+      }
+    } on SocketException {
+      _showErrorSnackBar('Network connection failed. Please check your internet connection.');
+    } on TimeoutException {
+      _showErrorSnackBar('Request timeout. Please try again.');
+    } on FormatException {
+      _showErrorSnackBar('Invalid response format. Server error');
+    } on Exception {
+      _showErrorSnackBar('Signup failed. Server error');
+    } finally {
+      setState(() => _loading = false);
+    }
   }
-}
 
   void _submit() {
     if (_formKey.currentState?.validate() ?? false) {
@@ -247,7 +251,8 @@ Future<void> _signup() async {
         return;
       }
       
-      if (password != repeatPassword) {
+      // Validate password confirmation
+      if (password != passwordConfirmation) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Passwords do not match"),
@@ -257,6 +262,19 @@ Future<void> _signup() async {
         );
         return;
       }
+
+      // Validate terms agreement
+      if (!_agreeTerms) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Please agree to the Terms of Service and Privacy Policy"),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+      
       _signup();
     }
   }
@@ -264,16 +282,18 @@ Future<void> _signup() async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.white,
+      backgroundColor: Colors.white,
       body: _buildSignupContent(),
     );
   }
 
   Widget _buildSignupContent() {
     if (_loading) {
-      return const Center(
-        child: CircularProgressIndicator(   color: Colors.blue, // Changed to blue color
-                        strokeWidth: 2.0),
+      return Center(
+        child: CircularProgressIndicator(
+          color: AppColors.primary, 
+          strokeWidth: 2.0
+        ),
       );
     }
 
@@ -307,11 +327,11 @@ Future<void> _signup() async {
             ),
             const SizedBox(width: 8),
             Text(
-              "Create Account",
+              "Join Survey Hub Today",
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.blue,
+                color: AppColors.primary,
               ),
             ),
           ],
@@ -320,7 +340,7 @@ Future<void> _signup() async {
         Padding(
           padding: const EdgeInsets.only(left: 16.0),
           child: Text(
-            "Sign up to join the the others",
+            "Create your account to get started",
             style: TextStyle(
               fontSize: 16,
               color: Colors.grey.shade700,
@@ -372,17 +392,19 @@ Future<void> _signup() async {
               ),
             ),
           
-          _buildFullNameField(),
+          _buildNameField(),
           const SizedBox(height: 20),
-           _buildPhoneField(),
+          _buildRefCodeField(),
           const SizedBox(height: 20),
           _buildEmailField(),
           const SizedBox(height: 20),
-          _buildCountryDropdown(), // Add country dropdown
+          _buildCountryDropdown(),
           const SizedBox(height: 20),
           _buildPasswordField(),
           const SizedBox(height: 20),
-          _buildRepeatPasswordField(),
+          _buildPasswordConfirmationField(),
+          const SizedBox(height: 20),
+          _buildTermsCheckbox(),
           const SizedBox(height: 32),
           _buildSignupButton(),
           const SizedBox(height: 24),
@@ -392,14 +414,14 @@ Future<void> _signup() async {
     );
   }
 
-  Widget _buildFullNameField() {
+  Widget _buildNameField() {
     return TextFormField(
       decoration: InputDecoration(
         labelText: "Full Name",
         hintText: "Enter your full name",
         prefixIcon: Icon(
           Icons.person_outline,
-          color: Colors.blue,
+          color: AppColors.primary,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -411,18 +433,18 @@ Future<void> _signup() async {
       ),
       style: const TextStyle(fontSize: 16),
       validator: (val) => val == null || val.isEmpty ? 'Please enter your name' : null,
-      onSaved: (val) => fullname = val ?? '',
+      onSaved: (val) => name = val ?? '',
     );
   }
 
-    Widget _buildPhoneField() {
+  Widget _buildRefCodeField() {
     return TextFormField(
       decoration: InputDecoration(
-        labelText: "Phone Number",
-        hintText: "Enter your Phone Number",
+        labelText: "Referral Code (Optional)",
+        hintText: "Enter referral code if you have one",
         prefixIcon: Icon(
-          Icons.person_outline,
-          color: Colors.blue,
+          Icons.card_giftcard_outlined,
+          color: AppColors.primary,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -433,19 +455,18 @@ Future<void> _signup() async {
         contentPadding: const EdgeInsets.all(16),
       ),
       style: const TextStyle(fontSize: 16),
-      validator: (val) => val == null || val.isEmpty ? 'Please enter your phone number' : null,
-      onSaved: (val) => phonenumber = val ?? '',
+      onSaved: (val) => refcode = val ?? '',
     );
   }
 
   Widget _buildEmailField() {
     return TextFormField(
       decoration: InputDecoration(
-        labelText: "Email",
+        labelText: "Email Address",
         hintText: "Enter your email address",
         prefixIcon: Icon(
           Icons.email_outlined,
-          color: Colors.blue,
+          color: AppColors.primary,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -462,7 +483,6 @@ Future<void> _signup() async {
     );
   }
 
-  // Helper method to build country dropdown with search
   Widget _buildCountryDropdown() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -478,7 +498,7 @@ Future<void> _signup() async {
             decoration: InputDecoration(
               labelText: 'Country',
               hintText: _isLoadingCountries ? 'Loading countries...' : 'Search and select your country',
-              prefixIcon: Icon(Icons.public, color: Colors.blue),
+              prefixIcon: Icon(Icons.public, color: AppColors.primary),
               suffixIcon: _countrySearchController.text.isNotEmpty
                 ? IconButton(
                     icon: Icon(Icons.clear, color: Colors.grey.shade600),
@@ -554,7 +574,7 @@ Future<void> _signup() async {
                 final country = _filteredCountries[index];
                 return ListTile(
                   title: Text(
-                    country.country,
+                    country.countryName,
                     style: const TextStyle(fontSize: 16),
                   ),
                   onTap: () => _selectCountry(country),
@@ -595,7 +615,7 @@ Future<void> _signup() async {
         hintText: "Create a password",
         prefixIcon: Icon(
           Icons.lock_outline,
-          color: Colors.blue,
+          color: AppColors.primary,
         ),
         suffixIcon: IconButton(
           icon: Icon(
@@ -618,22 +638,22 @@ Future<void> _signup() async {
     );
   }
 
-  Widget _buildRepeatPasswordField() {
+  Widget _buildPasswordConfirmationField() {
     return TextFormField(
-      obscureText: _obscureRepeatPassword,
+      obscureText: _obscurePasswordConfirmation,
       decoration: InputDecoration(
         labelText: "Confirm Password",
         hintText: "Repeat your password",
         prefixIcon: Icon(
           Icons.lock_outline,
-          color: Colors.blue,
+          color: AppColors.primary,
         ),
         suffixIcon: IconButton(
           icon: Icon(
-            _obscureRepeatPassword ? Icons.visibility_off : Icons.visibility,
+            _obscurePasswordConfirmation ? Icons.visibility_off : Icons.visibility,
             color: Colors.grey.shade600,
           ),
-          onPressed: () => setState(() => _obscureRepeatPassword = !_obscureRepeatPassword),
+          onPressed: () => setState(() => _obscurePasswordConfirmation = !_obscurePasswordConfirmation),
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -645,7 +665,39 @@ Future<void> _signup() async {
       ),
       style: const TextStyle(fontSize: 16),
       validator: (val) => val != null && val.length >= 4 ? null : 'Password must be at least 4 characters',
-      onSaved: (val) => repeatPassword = val ?? '',
+      onSaved: (val) => passwordConfirmation = val ?? '',
+    );
+  }
+
+  Widget _buildTermsCheckbox() {
+    return Row(
+      children: [
+        Checkbox(
+          value: _agreeTerms,
+          onChanged: (value) {
+            setState(() {
+              _agreeTerms = value ?? false;
+            });
+          },
+          activeColor: AppColors.primary,
+        ),
+        Expanded(
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                _agreeTerms = !_agreeTerms;
+              });
+            },
+            child: Text(
+              "I agree to the Terms of Service and Privacy Policy",
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade700,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -653,7 +705,7 @@ Future<void> _signup() async {
     return ElevatedButton(
       onPressed: _submit,
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.blue,
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(
@@ -685,7 +737,7 @@ Future<void> _signup() async {
           child: Text(
             "Login",
             style: TextStyle(
-              color: Colors.blue,
+              color: AppColors.primary,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -694,29 +746,27 @@ Future<void> _signup() async {
     );
   }
   
- void _showErrorSnackBar(String message) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(message),
-      backgroundColor: Colors.red,
-      behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.all(16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-    ),
-  );
-}
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
 
-void _showSuccessSnackBar(String message) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(message),
-      backgroundColor: Colors.green,
-      behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.all(16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-    ),
-  );
-}
-
-  
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
 }

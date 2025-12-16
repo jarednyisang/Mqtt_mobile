@@ -1,4 +1,4 @@
-package com.example.classicspin
+package com.siliconhighland.surveyhub
 
 import io.flutter.embedding.android.FlutterActivity
 

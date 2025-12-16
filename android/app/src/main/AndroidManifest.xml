@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+ <!-- Permissions -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:label="Qcash"
+        android:label="Survey Hub"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -42,4 +44,5 @@
             <data android:mimeType="text/plain"/>
         </intent>
     </queries>
+    
 </manifest>

@@ -113,6 +113,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.11"
+  equatable:
+    dependency: transitive
+    description:
+      name: equatable
+      sha256: "567c64b3cb4cf82397aac55f4f0cbd3ca20d77c6c03bedbc4ceaddc08904aef7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.7"
   fake_async:
     dependency: transitive
     description:
@@ -432,6 +440,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+  purchases_flutter:
+    dependency: "direct main"
+    description:
+      name: purchases_flutter
+      sha256: "7c7c196cc76382fd43ac96498e544adb705bc85ee6f46204c0b3020e47735e20"
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.9.5"
   share_plus:
     dependency: "direct main"
     description:
@@ -637,6 +653,38 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
+  webview_flutter:
+    dependency: "direct main"
+    description:
+      name: webview_flutter
+      sha256: c3e4fe614b1c814950ad07186007eff2f2e5dd2935eba7b9a9a1af8e5885f1ba
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.13.0"
+  webview_flutter_android:
+    dependency: transitive
+    description:
+      name: webview_flutter_android
+      sha256: "9a25f6b4313978ba1c2cda03a242eea17848174912cfb4d2d8ee84a556f248e3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.10.1"
+  webview_flutter_platform_interface:
+    dependency: transitive
+    description:
+      name: webview_flutter_platform_interface
+      sha256: "63d26ee3aca7256a83ccb576a50272edd7cfc80573a4305caa98985feb493ee0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.14.0"
+  webview_flutter_wkwebview:
+    dependency: transitive
+    description:
+      name: webview_flutter_wkwebview
+      sha256: fb46db8216131a3e55bcf44040ca808423539bc6732e7ed34fb6d8044e3d512f
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.23.0"
   win32:
     dependency: transitive
     description:

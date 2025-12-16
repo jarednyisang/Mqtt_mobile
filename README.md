@@ -1,3 +1,3 @@
-# classicspin
+# merrygomobile
 
 A new Flutter project.

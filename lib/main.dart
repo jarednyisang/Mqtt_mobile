@@ -1,9 +1,7 @@
 
 import 'dart:async';
-
-import 'package:classicspin/useraccount/SplashScreen.dart';
-
 import 'package:flutter/material.dart';
+import 'package:surveyhub/utils/SplashScreen.dart';
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 
@@ -19,7 +17,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Queue Cash',
+      title: 'Merry Go',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         primaryColor: Color(0xFF1565C0),

@@ -1,18 +1,19 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
-import 'package:classicspin/dashboard/MainScreen.dart';
-import 'package:classicspin/useraccount/ForgotPasswordPage.dart';
-import 'package:classicspin/useraccount/SignupPage.dart';
-import 'package:classicspin/utils/BaseUrl.dart';
-import 'package:classicspin/utils/UserSession.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:surveyhub/dashboard/MainScreen.dart';
+import 'package:surveyhub/useraccount/ForgotPasswordPage.dart';
+import 'package:surveyhub/useraccount/SignupPage.dart';
+import 'package:surveyhub/utils/AppColors.dart';
+import 'package:surveyhub/utils/BaseUrl.dart';
+import 'package:surveyhub/utils/UserSession.dart';
+
 
 class LoginPage extends StatefulWidget {
-  final void Function(int pid, String phonenumber, String fullname, String emailaddress,String password) onLoginSuccess;
+  final void Function(int pid, String code, String fullname, String emailaddress,String password) onLoginSuccess;
 
   const LoginPage({super.key, required this.onLoginSuccess});
 
@@ -47,6 +48,7 @@ Future<void> _login() async {
 
   try {
     final url = Uri.parse(BaseUrl.LOGIN);
+    
     final response = await http
         .post(
           url,
@@ -62,29 +64,30 @@ Future<void> _login() async {
 
     final data = jsonDecode(response.body);
 
+
     if (response.statusCode == 200 && data['error'] == false) {
       final pid = data['pid'];
-      final phonenumber = data['phone'];
+      final code = data['code'];
       final fullname = data['fullname'];
       final emailaddress = data['email'];
       final password = data['password'];
 
       await UserSession.saveSession(
         pid: pid,
-         phonenumber: phonenumber,
+         code: code,
         password: password,
         email: emailaddress,
         fullname: fullname,
       );
 
-      widget.onLoginSuccess(pid, phonenumber, fullname, emailaddress,password);
+      widget.onLoginSuccess(pid, code, fullname, emailaddress,password);
 
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => MainScreen(
             userpid: pid,
-            phonenumber: phonenumber,
+            code: code,
             fullname: fullname,
             emailaddress: emailaddress,
             userpassword:password
@@ -126,8 +129,8 @@ Future<void> _login() async {
 
   Widget _buildLoginContent() {
     if (_loading) {
-      return const Center(
-        child: CircularProgressIndicator(  color: Colors.blue, // Changed to blue color
+      return Center(
+        child: CircularProgressIndicator(   color: AppColors.primary,  // Changed to blue color
                         strokeWidth: 2.0),
       );
     }
@@ -157,7 +160,7 @@ Future<void> _login() async {
           backgroundColor: Colors.white,
           child: CircleAvatar(
             radius: 59,
-            backgroundImage: AssetImage('assets/images/classicpos1.png'),
+            backgroundImage: AssetImage('assets/images/chloride.png'),
             backgroundColor: Colors.transparent,
           ),
         ),
@@ -167,12 +170,12 @@ Future<void> _login() async {
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: Colors.blue,
+            color: Colors.blue.shade900,
           ),
         ),
         const SizedBox(height: 8),
         const Text(
-          "Login to join others in the Queue",
+          "Log in to engage and share ideas .",
           style: TextStyle(
             fontSize: 16,
             color: Colors.black54,
@@ -221,7 +224,7 @@ Future<void> _login() async {
         hintText: "Enter your email",
         prefixIcon: Icon(
           Icons.email_outlined,
-          color: Colors.blue,
+          color: Colors.blue.shade900,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -251,7 +254,7 @@ Future<void> _login() async {
         hintText: "Enter your password",
         prefixIcon: Icon(
           Icons.lock_outline,
-          color: Colors.blue,
+          color: Colors.blue.shade900,
         ),
         suffixIcon: IconButton(
           icon: Icon(
@@ -292,7 +295,7 @@ Future<void> _login() async {
         child: Text(
           "Forgot Password?",
           style: TextStyle(
-            color: Colors.blue,
+            color: Colors.blue.shade900,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -304,7 +307,7 @@ Future<void> _login() async {
     return ElevatedButton(
       onPressed: _submit,
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.blue.shade900,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(
@@ -338,7 +341,7 @@ Future<void> _login() async {
           child: Text(
             "Sign Up",
             style: TextStyle(
-              color: Colors.blue,
+              color: Colors.blue.shade900,
               fontWeight: FontWeight.bold,
             ),
           ),

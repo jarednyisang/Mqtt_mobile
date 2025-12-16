@@ -16,7 +16,7 @@ val keystoreProperties = Properties().apply {
 }
 
 android {
-    namespace = "com.example.classicspin"
+    namespace = "com.siliconhighland.surveyhub"
     compileSdk = 36
     ndkVersion = "27.0.12077973" // use explicit NDK version
 
@@ -31,11 +31,11 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.classicspin"
+        applicationId = "com.siliconhighland.surveyhub"
         minSdk = flutter.minSdkVersion
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 9
+        versionName = "1.0.09"
     }
 
     signingConfigs {

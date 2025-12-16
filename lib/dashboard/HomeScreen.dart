@@ -54,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _connectToMqtt() async {
     // Configure MQTT client
     _mqttClient = MqttServerClient('broker.hivemq.com', 'chloride_${widget.pid}');
-    _mqttClient.port = 1883;
+    _mqttClient.port = 8884;
     _mqttClient.keepAlivePeriod = 60;
     _mqttClient.autoReconnect = true;
     _mqttClient.logging(on: false);
@@ -76,10 +76,10 @@ class _HomeScreenState extends State<HomeScreen> {
         });
 
         // Subscribe to Chloride Exide topics
-        _mqttClient.subscribe('batteries/status', MqttQos.atLeastOnce);
-        _mqttClient.subscribe('solar/data', MqttQos.atLeastOnce);
-        _mqttClient.subscribe('notifications', MqttQos.atLeastOnce);
-        _mqttClient.subscribe('user/${widget.pid}/alerts', MqttQos.atLeastOnce);
+        _mqttClient.subscribe('chloride/batteries/status', MqttQos.atLeastOnce);
+        _mqttClient.subscribe('chloride/solar/data', MqttQos.atLeastOnce);
+        _mqttClient.subscribe('chloride/notifications', MqttQos.atLeastOnce);
+        _mqttClient.subscribe('chloride/user/${widget.pid}/alerts', MqttQos.atLeastOnce);
 
         // Listen to incoming messages
         _mqttClient.updates!.listen((List<MqttReceivedMessage<MqttMessage>> messages) {
